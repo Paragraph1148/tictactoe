@@ -1,70 +1,175 @@
-# Getting Started with Create React App
+## Tic‑Tac‑Toe React App
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A simple, browser‑based Tic‑Tac‑Toe game built with **React** and functional components.  
+The code is split into three files:
 
-## Available Scripts
+| File                     | Purpose                                                        |
+| ------------------------ | -------------------------------------------------------------- |
+| `App.js`                 | Main game logic, board state, win/tie detection, turn handling |
+| `components/Square.js`   | Individual square component                                    |
+| `components/Patterns.js` | Winning patterns (rows, columns, diagonals)                    |
 
-In the project directory, you can run:
+### Features
 
-### `npm start`
+- Two‑player play (X vs O) on a 3×3 grid
+- Automatic win detection using predefined patterns
+- Tie detection when all squares are filled
+- Game resets automatically after a win or tie (via an alert)
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+---
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Getting Started
 
-### `npm test`
+### Prerequisites
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+- **Node.js** (v14 or newer)
+- **npm** or **yarn**
 
-### `npm run build`
+### Installation
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+```bash
+# Clone the repository
+git clone https://github.com/your‑username/tic-tac-toe-react.git
+cd tic-tac-toe-react
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+# Install dependencies
+npm install   # or: yarn install
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### Running the App
 
-### `npm run eject`
+```bash
+npm start   # or: yarn start
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+The development server will launch at `http://localhost:3000`. Open that URL in a browser to play.
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+---
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## Project Structure
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+```
+tic-tac-toe-react/
+├─ src/
+│  ├─ App.js               # main component, state management
+│  ├─ App.css              # styling for board & squares
+│  └─ components/
+│     ├─ Square.js         # clickable square UI
+│     └─ Patterns.js       # export const Patterns = [...]
+├─ public/
+│  └─ index.html
+├─ package.json
+└─ README.md               # (this file)
+```
 
-## Learn More
+### Key Code Walk‑through
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+#### 1. State Management (`App.js`)
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+```js
+const [board, setBoard] = useState(Array(9).fill(""));
+const [player, setPlayer] = useState("O");
+const [result, setResult] = useState({ winner: "none", state: "none" });
+```
 
-### Code Splitting
+- `board` holds the 9 squares.
+- `player` toggles between `"X"` and `"O"` after each move.
+- `result` records the outcome (winner or tie).
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+#### 2. Turn Switching
 
-### Analyzing the Bundle Size
+```js
+useEffect(() => {
+  checkWin();
+  checkIfTie();
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+  // Switch player after every board update
+  setPlayer((prev) => (prev === "X" ? "O" : "X"));
+}, [board]);
+```
 
-### Making a Progressive Web App
+The effect runs whenever the board changes, checks for a win/tie, then flips the active player.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+#### 3. Win Detection (`checkWin`)
 
-### Advanced Configuration
+```js
+Patterns.forEach((pattern) => {
+  const first = board[pattern[0]];
+  if (!first) return; // empty square → cannot win
+  const win = pattern.every((idx) => board[idx] === first);
+  if (win) setResult({ winner: player, state: "won" });
+});
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+Iterates over each winning pattern; if all three indices contain the same non‑empty symbol, the current player wins.
 
-### Deployment
+#### 4. Tie Detection (`checkIfTie`)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+```js
+if (board.every((square) => square !== "")) {
+  setResult({ winner: "No One", state: "Tie" });
+}
+```
 
-### `npm run build` fails to minify
+When every square is filled and no win was found, the game ends in a tie.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+#### 5. Square Component (`Square.js`)
+
+```js
+function Square({ val, chooseSquare }) {
+  return (
+    <div className="square" onClick={chooseSquare}>
+      {val}
+    </div>
+  );
+}
+```
+
+A simple `div` that displays the square’s value and calls `chooseSquare` when clicked.
+
+---
+
+## Styling (App.css)
+
+```css
+.App {
+  text-align: center;
+}
+.board {
+  display: inline-block;
+  margin-top: 2rem;
+}
+.row {
+  display: flex;
+}
+.square {
+  width: 80px;
+  height: 80px;
+  border: 2px solid #333;
+  font-size: 2rem;
+  line-height: 80px;
+  cursor: pointer;
+}
+```
+
+Feel free to customize colors, sizes, or add animations.
+
+---
+
+## Extending the Project (Study Ideas)
+
+| Idea                         | What You’ll Learn                           |
+| ---------------------------- | ------------------------------------------- |
+| **Add a score board**        | State lifting, persisting data across games |
+| **Implement AI opponent**    | Minimax algorithm, deeper React logic       |
+| **Responsive design**        | CSS Grid/Flexbox, media queries             |
+| **Write unit tests**         | Jest + React Testing Library basics         |
+| **Deploy to Netlify/Vercel** | CI/CD pipelines, static site hosting        |
+
+Pick one that excites you and try it out—hands‑on experimentation is the fastest way to solidify concepts!
+
+---
+
+## License
+
+This project is licensed under the **MIT License**. See the `LICENSE` file for details.
